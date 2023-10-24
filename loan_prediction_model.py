@@ -1,5 +1,7 @@
 import os
+import joblib
 import pandas as pd
+from django.conf import settings
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score
@@ -10,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 # Data Path and loadin gof the dataset path
 DATA_PATH = None
 try:
-    DATA_PATH = os.path.join(os.getcwd(), 'dataset/train.csv')
+    DATA_PATH = os.path.join(settings.DATASET_DIR_PATH, 'train.csv')
 except FileNotFoundError as e:
     print(f"Error: {e}")
 
@@ -113,3 +115,16 @@ precision_score_accuracy = precision_score(y_test, meta_predictions)
 print("Ensemble Model Accuracy:", ensemble_accuracy)
 print("Ensemble Model F1 Score:", f1_ensemble_accuracy)
 print("Ensemble Model Precision Score:", precision_score_accuracy)
+
+# Save the model and scaler
+scaler_filename = 'loan_scaler.pkl'
+model_filename = 'loan_prediction_model.pkl'
+
+scaler_filename_dir = os.path.join(settings.PICKLES_DIR_PATH, scaler_filename)
+model_filename_dir = os.path.join(settings.PICKLES_DIR_PATH, model_filename)
+
+joblib.dump(scaler, scaler_filename_dir)
+joblib.dump(meta_ensemble, model_filename_dir)
+
+print(f"Scaler saved to {scaler_filename_dir} as {scaler_filename}")
+print(f"Model saved to {model_filename_dir} as {model_filename}")
