@@ -16,6 +16,12 @@ This project is to be run using Dokcer. In case Dokcer is not available, the pro
 	<li>Create and activate a virtual environment and install the requirements:
 		<code>pip install requirements.txt</code>
 	</li>
+	<li>Create a <code>.env </code>file and insert the following or set up a <code>django secret key</code>
+		<ul>
+			<li>SECRET_KEY=default-django-secret-key</li>
+			<li>DEBUG=True</li>
+		</ul>
+	</li>
 	<li>Run the loan_prediction_model.py:
 		<code>python manage.py shell < loan_prediction_model.py</code>
 	</li>
