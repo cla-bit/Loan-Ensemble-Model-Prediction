@@ -1,5 +1,6 @@
 import os
 import joblib
+import numpy as np
 from django.conf import settings
 from django.shortcuts import render
 from .forms import LoadApprovalForm
@@ -8,7 +9,7 @@ from .forms import LoadApprovalForm
 
 # load the trained model
 model = joblib.load(os.path.join(settings.PICKLES_DIR_PATH, 'loan_prediction_model.pkl'))
-
+scaler = joblib.load(os.path.join(settings.PICKLES_DIR_PATH, 'loan_scaler.pkl'))
 
 def loan_prediction(request):
     if request.method == 'POST':
@@ -31,9 +32,10 @@ def loan_prediction(request):
                 user_input['Credit_History'],
                 user_input['Property_Area'],
             ]
-            # user_input_int = [int(x) for x in user_input.values()]
-            # user_input_array = [np.array(user_input_int)]
-            prediction = model.predict([user_input_data])[0]
+            user_input_int = [int(x) for x in user_input.values()]
+            user_input_array = np.array(user_input_int).reshape(1, -1)
+            user_input_scaler = scaler.fit_transform(user_input_array)
+            prediction = model.predict(user_input_scaler)[0]
             print(prediction)
 
             # Call the prediction function
