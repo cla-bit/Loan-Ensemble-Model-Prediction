@@ -91,21 +91,13 @@ meta_ensemble = VotingClassifier(estimators=[
 ], voting='soft')
 
 # Train the meta-ensemble on the predictions of the base models
-meta_ensemble.fit(list(zip(
-    random_forest_classifier_prediction,
-    gradient_boosting_classifier_prediction,
-    logistic_regression_prediction,
-    adaboost_classifier_prediction
-)), y_test)
+meta_ensemble.fit(
+    X_train,
+    y_train
+)
 
 # Make predictions with the meta-ensemble
-meta_predictions = meta_ensemble.predict(list(zip(
-    random_forest_classifier_prediction,
-    gradient_boosting_classifier_prediction,
-    logistic_regression_prediction,
-    adaboost_classifier_prediction
-)))
-
+meta_predictions = meta_ensemble.predict(X_test)
 
 # Evaluate the ensemble model's accuracy
 ensemble_accuracy = accuracy_score(y_test, meta_predictions)
