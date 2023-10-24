@@ -12,7 +12,7 @@ class LoadApprovalForm(forms.Form):
     LoanAmount = forms.FloatField()
     Loan_Amount_Term = forms.FloatField()
     Credit_History = forms.ChoiceField(choices=[(0, 'No'), (1, 'Yes')])
-    Property_Area = forms.ChoiceField(choices=[(0, 'Rural'), (1, 'SemiUrban'), (2, 'Urban')])
+    Property_Area = forms.ChoiceField(choices=[(0, 'Urban'), (1, 'Rural'), (2, 'SemiUrban')])
 
     # def clean(self):
     #     cleaned_data = super().clean()
