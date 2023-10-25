@@ -25,16 +25,12 @@ def loan_prediction(request):
             prediction = predict_loan_approval(user_input)
             # Check the prediction and set message based on the result
             if prediction[0] == 1:
-                success(request, 'Your request for a Loan has been Approved!')
-                MESSAGE = 'Your request for a Loan has been Approved! You can go to any of our ' \
-                          'Branch to apply for a loan with ease!'
+                success(request, 'Your request for a Loan has been Approved! You can go to any of our'
+                                 ' Branch to apply for a loan with ease!')
             else:
                 error(request, 'Your request for a Loan has been Rejected!')
-                MESSAGE = 'Your request for a Loan has been Rejected!'
-            # Reset the form
-            form = LoadApprovalForm()
+            return redirect('loan:loan_prediction')
     else:
         form = LoadApprovalForm()
 
     return render(request, 'loan-form.html', {'form': form, 'MESSAGE': MESSAGE})
-
