@@ -99,6 +99,7 @@ meta_ensemble.fit(
 # Make predictions with the meta-ensemble
 meta_predictions = meta_ensemble.predict(X_test)
 
+
 # Evaluate the ensemble model's accuracy
 ensemble_accuracy = accuracy_score(y_test, meta_predictions)
 f1_ensemble_accuracy = f1_score(y_test, meta_predictions)

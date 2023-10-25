@@ -1,15 +1,114 @@
 <!DOCTYPE html>
+{% load static %}
+{% load widget_tweaks %}
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Loan Prediction</title>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+        <title>Loan Repayment Ensemble Algorithm</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+        <!--     Fonts and icons     -->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+        <!-- Material Icons -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+        <!-- Custom CSS Files -->
+        <link id="pagestyle" href="{% static 'css/styles.css' %}" rel="stylesheet" />
+    </head>
+    <body>
+        <ul class="background">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
 
-    <form action="" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit</button>
-    </form>
-</body>
+        <div class="container bg-color-white">
+            <div class="row">
+                <h4 class="text-center">Loan Repayment Ensemble Form</h4>
+                <div class="d-flex justify-content-center align-items-center">
+                    <form action="" method="post" class="row">
+                        {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <div class="alert-header">
+                                <strong class="me-auto">Loan Message</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <div class="alert-body">
+                                {{ MESSAGE }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% csrf_token %}
+                        <div class="row g-2">
+                            <div class="col">
+                                <label class="form-label" for="{{ form.Gender.id_for_label }}">{{ form.Gender.label_tag }}</label>
+                                {{ form.Gender|attr:"class:form-control mb-2" }}
+                            </div>
+                            <div class="col">
+                                <label class="form-label" for="{{ form.Married.id_for_label }}">{{ form.Married.label_tag }}</label>
+                                {{ form.Married|attr:"class:form-control mb-2" }}
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col">
+                                <label class="form-label" for="{{ form.Dependents.id_for_label }}">{{ form.Dependents.label_tag }}</label>
+                                {{ form.Dependents|attr:"class:form-control mb-2" }}
+                            </div>
+                            <div class="col">
+                                <label class="form-label" for="{{ form.Education.id_for_label }}">{{ form.Education.label_tag }}</label>
+                                {{ form.Education|attr:"class:form-control mb-2" }}
+                            </div>
+                            <div class="col">
+                                <label class="form-label" for="{{ form.Self_Employed.id_for_label }}">{{ form.Self_Employed.label_tag }}</label>
+                                {{ form.Self_Employed|attr:"class:form-control mb-2" }}
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col">
+                                <label class="form-label" for="{{ form.ApplicantIncome.id_for_label }}">{{ form.ApplicantIncome.label_tag }}</label>
+                                {{ form.ApplicantIncome|attr:"class:form-control mb-2" }}
+                            </div>
+                            <div class="col">
+                                <label class="form-label" for="{{ form.CoApplicantIncome.id_for_label }}">{{ form.CoApplicantIncome.label_tag }}</label>
+                                {{ form.CoApplicantIncome|attr:"class:form-control mb-2" }}
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col">
+                                <label class="form-label" for="{{ form.LoanAmount.id_for_label }}">{{ form.LoanAmount.label_tag }}</label>
+                                {{ form.LoanAmount|attr:"class:form-control mb-2" }}
+                            </div>
+                            <div class="col">
+                                <label class="form-label" for="{{ form.Loan_Amount_Term.id_for_label }}">{{ form.Loan_Amount_Term.label_tag }}</label>
+                                {{ form.Loan_Amount_Term|attr:"class:form-control mb-2" }}
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label" for="{{ form.Credit_History.id_for_label }}">{{ form.Credit_History.label_tag }}</label>
+                            {{ form.Credit_History|attr:"class:form-control mb-2" }}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label" for="{{ form.Property_Area.id_for_label }}">{{ form.Property_Area.label_tag }}</label>
+                            {{ form.Property_Area|attr:"class:form-control" }}
+                        </div>
+
+                        <div class="d-grid gap-2 col-6 mx-auto">
+                            <button type="submit" class="btn btn-dark btn-md">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    </body>
 </html>

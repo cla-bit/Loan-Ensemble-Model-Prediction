@@ -1,9 +1,11 @@
 import os
 import joblib
-import numpy as np
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.messages import success, error
 from .forms import LoadApprovalForm
+from .loan_predictor import predict_loan_approval
+
 
 # Create your views here.
 
@@ -11,39 +13,28 @@ from .forms import LoadApprovalForm
 model = joblib.load(os.path.join(settings.PICKLES_DIR_PATH, 'loan_prediction_model.pkl'))
 scaler = joblib.load(os.path.join(settings.PICKLES_DIR_PATH, 'loan_scaler.pkl'))
 
+
 def loan_prediction(request):
+    MESSAGE = ''
     if request.method == 'POST':
         form = LoadApprovalForm(request.POST)
         if form.is_valid():
             # Get user input as a dictionary
             user_input = form.cleaned_data
-            print(user_input.keys())
-            print(user_input.values())
-            user_input_data = [
-                user_input['Gender'],
-                user_input['Married'],
-                user_input['Dependents'],
-                user_input['Education'],
-                user_input['Self_Employed'],
-                user_input['ApplicantIncome'],
-                user_input['CoApplicantIncome'],
-                user_input['LoanAmount'],
-                user_input['Loan_Amount_Term'],
-                user_input['Credit_History'],
-                user_input['Property_Area'],
-            ]
-            user_input_int = [int(x) for x in user_input.values()]
-            user_input_array = np.array(user_input_int).reshape(1, -1)
-            user_input_scaler = scaler.fit_transform(user_input_array)
-            prediction = model.predict(user_input_scaler)[0]
-            print(prediction)
-
             # Call the prediction function
-            # prediction = predict_loan_approval(user_input)
-            # print(f"Prediction: {prediction[0]}")
-            # return render(request, 'result.html', {'prediction': prediction})
+            prediction = predict_loan_approval(user_input)
+            # Check the prediction and set message based on the result
+            if prediction[0] == 1:
+                success(request, 'Your request for a Loan has been Approved!')
+                MESSAGE = 'Your request for a Loan has been Approved! You can go to any of our ' \
+                          'Branch to apply for a loan with ease!'
+            else:
+                error(request, 'Your request for a Loan has been Rejected!')
+                MESSAGE = 'Your request for a Loan has been Rejected!'
+            # Reset the form
+            form = LoadApprovalForm()
     else:
         form = LoadApprovalForm()
 
-    return render(request, 'loan-form.html', {'form': form})
+    return render(request, 'loan-form.html', {'form': form, 'MESSAGE': MESSAGE})
 

@@ -125,6 +125,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR/'static']  # You can set up media settings also
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -134,4 +135,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # get the path to the loan_prediction_model.pkl file
 PICKLES_DIR_PATH = os.path.join(BASE_DIR, 'pickles_dir')
 DATASET_DIR_PATH = os.path.join(BASE_DIR, 'dataset')
-

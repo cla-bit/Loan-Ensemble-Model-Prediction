@@ -2,17 +2,17 @@ from django import forms
 
 
 class LoadApprovalForm(forms.Form):
-    Gender = forms.ChoiceField(choices=[(0, 'Male'), (1, 'Female')])
-    Married = forms.ChoiceField(choices=[(0, 'No'), (1, 'Yes')])
-    Dependents = forms.IntegerField()
-    Education = forms.ChoiceField(choices=[(0, 'Not Graduate'), (1, 'Graduate')])
-    Self_Employed = forms.ChoiceField(choices=[(0, 'No'), (1, 'Yes')])
-    ApplicantIncome = forms.IntegerField()
-    CoApplicantIncome = forms.IntegerField()
-    LoanAmount = forms.FloatField()
-    Loan_Amount_Term = forms.FloatField()
-    Credit_History = forms.ChoiceField(choices=[(0, 'No'), (1, 'Yes')])
-    Property_Area = forms.ChoiceField(choices=[(0, 'Urban'), (1, 'Rural'), (2, 'SemiUrban')])
+    Gender = forms.ChoiceField(choices=[(0, 'Male'), (1, 'Female')], label='What is your Gender?')
+    Married = forms.ChoiceField(choices=[(0, 'No'), (1, 'Yes')], label='Are you Married?')
+    Dependents = forms.IntegerField(label='How many Dependents do you live with?')
+    Education = forms.ChoiceField(choices=[(0, 'Not Graduate'), (1, 'Graduate')], label='What is your level of Education?')
+    Self_Employed = forms.ChoiceField(choices=[(0, 'No'), (1, 'Yes')], label='Are you Self-Employed?')
+    ApplicantIncome = forms.IntegerField(label='What is your monthly Income?')
+    CoApplicantIncome = forms.IntegerField(label='What is your monthly Co-Applicant Income?')
+    LoanAmount = forms.FloatField(label='How much Loan do you want to apply?')
+    Loan_Amount_Term = forms.FloatField(label='What is your Loan Term?')
+    Credit_History = forms.ChoiceField(choices=[(0, 'No'), (1, 'Yes')], label='Do you have Credit History?')
+    Property_Area = forms.ChoiceField(choices=[(0, 'Urban'), (1, 'Rural'), (2, 'SemiUrban')], label='What is your Property Area?')
 
     # def clean(self):
     #     cleaned_data = super().clean()
