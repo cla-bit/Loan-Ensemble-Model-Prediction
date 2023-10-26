@@ -1,8 +1,8 @@
 import os
-from imblearn.over_sampling import SMOTE
 import joblib
 import pandas as pd
 from django.conf import settings
+from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score
