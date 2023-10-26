@@ -106,3 +106,7 @@
     bottom: -145px;
     animation-delay: 6s;
 }
+
+.alert-error {
+    background: #f8d7da;
+}

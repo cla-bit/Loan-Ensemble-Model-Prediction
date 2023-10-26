@@ -1,13 +1,15 @@
 import os
+from imblearn.over_sampling import SMOTE
 import joblib
 import pandas as pd
 from django.conf import settings
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
+from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
-
+from sklearn.naive_bayes import GaussianNB
 
 # Data Path and loadin gof the dataset path
 DATA_PATH = None
@@ -17,7 +19,6 @@ except FileNotFoundError as e:
     print(f"Error: {e}")
 
 load_dataset = pd.read_csv(DATA_PATH)
-
 
 # Remove the 'Loan_ID' column
 load_dataset.drop('Loan_ID', axis=1, inplace=True)
@@ -45,9 +46,7 @@ load_dataset['Credit_History'] = load_dataset['Credit_History'].astype(int)
 load_dataset['Property_Area'] = load_dataset['Property_Area'].map({'Urban': 0, 'Rural': 1, 'SemiUrban': 2}).astype(int)
 load_dataset['Loan_Status'] = load_dataset['Loan_Status'].map({'N': 0, 'Y': 1}).astype(int)
 
-print(load_dataset.columns)
-print(load_dataset.corr())
-
+# scale the data
 scaler = StandardScaler()
 
 # split into features and target
@@ -56,49 +55,135 @@ X = scaler.fit_transform(X)
 
 Y = load_dataset['Loan_Status']
 
+# handling class imbalance using SMOTE
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, Y)
+
 # split into train and test
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=4)
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=4)
+
+# Hyperparameter tuning for individual models
+# Example for RandomForestClassifier
+rf_params = {
+    'n_estimators': [100, 200, 300],
+    'max_depth': [10, 20, 30],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+ada_params = {
+    'n_estimators': [50, 100, 200],
+    'learning_rate': [0.01, 0.1, 1.0]
+}
+grd_params = {
+    'n_estimators': [100, 200, 300],
+    'learning_rate': [0.01, 0.1, 1.0],
+    'max_depth': [3, 5, 7]
+}
+log_params = {
+    'C': [0.1, 1, 10]
+}
+svm_params = {
+    'C': [0.1, 1, 10],
+    'kernel': ['linear', 'rbf'],
+    'gamma': ['scale', 'auto']
+}
+# Create a dictionary of classifiers and their respective parameter grids
+rand_classifiers = {
+    'Random Forest': (RandomForestClassifier(), rf_params),
+    'AdaBoost': (AdaBoostClassifier(), ada_params),
+    'Gradient Boosting': (GradientBoostingClassifier(), grd_params),
+    'Logistic Regression': (LogisticRegression(), log_params),
+    'SVM': (SVC(), svm_params)
+}
+
+rand_best_classifiers = {}
+
+# Loop through each classifier and perform RandomizedSearchCV
+for name, (classifier, param_dist) in rand_classifiers.items():
+    random_search = RandomizedSearchCV(classifier, param_distributions=param_dist, n_iter=10, cv=5, n_jobs=-1,
+                                       random_state=42)
+    random_search.fit(X_train, y_train)
+    rand_best_classifiers[name] = random_search.best_estimator_
+
 
 # Train the individual models
+random_forest_classifier = rand_best_classifiers['Random Forest']
+adaboost_classifier = rand_best_classifiers['AdaBoost']
+gradient_boosting_classifier = rand_best_classifiers['Gradient Boosting']
+logistic_regression = rand_best_classifiers['Logistic Regression']
+naive_bayes_classifier = GaussianNB()
+svm_classifier = rand_best_classifiers['SVM']
 
-# Random Forest Classifier Model
-random_forest_classifier = RandomForestClassifier(n_estimators=100)
 random_forest_classifier.fit(X_train, y_train)
-random_forest_classifier_prediction = random_forest_classifier.predict(X_test)
-
-# Adaboost Classifier Model
-adaboost_classifier = AdaBoostClassifier(n_estimators=100)
 adaboost_classifier.fit(X_train, y_train)
-adaboost_classifier_prediction = adaboost_classifier.predict(X_test)
-
-# Gradient Boosting Classifier Model
-gradient_boosting_classifier = GradientBoostingClassifier(n_estimators=100)
 gradient_boosting_classifier.fit(X_train, y_train)
-gradient_boosting_classifier_prediction = gradient_boosting_classifier.predict(X_test)
-
-# Logistic Regression Model
-logistic_regression = LogisticRegression()
 logistic_regression.fit(X_train, y_train)
-logistic_regression_prediction = logistic_regression.predict(X_test)
+naive_bayes_classifier.fit(X_train, y_train)
+svm_classifier.fit(X_train, y_train)
 
+# Make predictions using individual models
+random_forest_classifier_prediction = random_forest_classifier.predict(X_test)
+adaboost_classifier_prediction = adaboost_classifier.predict(X_test)
+gradient_boosting_classifier_prediction = gradient_boosting_classifier.predict(X_test)
+logistic_regression_prediction = logistic_regression.predict(X_test)
+naive_bayes_classifier_prediction = naive_bayes_classifier.predict(X_test)
+svm_classifier_prediction = svm_classifier.predict(X_test)
+
+# analyze the models for accuracy, f1 score, precision
+random_forest_accuracy = accuracy_score(y_test, random_forest_classifier_prediction)
+adaboost_accuracy = accuracy_score(y_test, adaboost_classifier_prediction)
+gradient_boosting_accuracy = accuracy_score(y_test, gradient_boosting_classifier_prediction)
+logistic_regression_accuracy = accuracy_score(y_test, logistic_regression_prediction)
+naive_bayes_accuracy = accuracy_score(y_test, naive_bayes_classifier_prediction)
+svm_accuracy = accuracy_score(y_test, svm_classifier_prediction)
+
+random_forest_f1_score = f1_score(y_test, random_forest_classifier_prediction)
+adaboost_f1_score = f1_score(y_test, adaboost_classifier_prediction)
+gradient_boosting_f1_score = f1_score(y_test, gradient_boosting_classifier_prediction)
+logistic_regression_f1_score = f1_score(y_test, logistic_regression_prediction)
+naive_bayes_f1_score = f1_score(y_test, naive_bayes_classifier_prediction)
+svm_f1_score = f1_score(y_test, svm_classifier_prediction)
+
+random_forest_precision_score = precision_score(y_test, random_forest_classifier_prediction)
+adaboost_precision_score = precision_score(y_test, adaboost_classifier_prediction)
+gradient_boosting_precision_score = precision_score(y_test, gradient_boosting_classifier_prediction)
+logistic_regression_precision_score = precision_score(y_test, logistic_regression_prediction)
+naive_bayes_precision_score = precision_score(y_test, naive_bayes_classifier_prediction)
+svm_precision_score = precision_score(y_test, svm_classifier_prediction)
+
+# Cross-validation
+classifiers = {'Random Forest': random_forest_classifier, 'Adaboost': adaboost_classifier,
+               'Gradient Boosting': gradient_boosting_classifier, 'Logistic Regression': logistic_regression,
+               'Naive Bayes': naive_bayes_classifier, 'SVM': svm_classifier}
+accuracies_mean_score = {}
+improved_classifiers = {}
+best_accuracy = 0
+for name, classifier in classifiers.items():
+    scores = cross_val_score(classifier, X_train, y_train, cv=10, scoring='accuracy')
+    mean_score = scores.mean()
+
+    accuracies_mean_score[name] = mean_score
+
+    if mean_score > best_accuracy:
+        best_accuracy = mean_score
+        improved_classifiers = {name: classifier}
+    elif mean_score == best_accuracy:
+        improved_classifiers[name] = classifier
+
+# Print the accuracies and improved classifiers
+print("Classifier Accuracies:")
+for name, accuracy in accuracies_mean_score.items():
+    print(f"{name}: {accuracy:.3f}")
 
 # Create a meta-ensemble model (Voting Classifier)
 meta_ensemble = VotingClassifier(estimators=[
-    ('rf', random_forest_classifier),
-    ('gb', gradient_boosting_classifier),
-    ('lr', logistic_regression),
-    ('ab', adaboost_classifier)
-], voting='soft')
+    (name, classifier) for name, classifier in improved_classifiers.items()], voting='hard')
 
 # Train the meta-ensemble on the predictions of the base models
-meta_ensemble.fit(
-    X_train,
-    y_train
-)
+meta_ensemble.fit(X_train, y_train)
 
 # Make predictions with the meta-ensemble
 meta_predictions = meta_ensemble.predict(X_test)
-
 
 # Evaluate the ensemble model's accuracy
 ensemble_accuracy = accuracy_score(y_test, meta_predictions)
