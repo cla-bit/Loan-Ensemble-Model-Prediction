@@ -1,17 +1,19 @@
-import os
-import numpy as np
-import joblib
 from django.conf import settings
+
+import joblib
+import numpy as np
 
 
 # load the trained model
-model = joblib.load(os.path.join(settings.PICKLES_DIR_PATH, 'loan_prediction_model.pkl'))
-scaler = joblib.load(os.path.join(settings.PICKLES_DIR_PATH, 'loan_scaler.pkl'))
+try:
+    model = joblib.load(settings.MODEL_PICKLE_PATH)
+    scaler = joblib.load(settings.SCALER_PICKLE_PATH)
+except FileNotFoundError:
+    raise FileNotFoundError("Both Scaler and Model files are not found")
 
 
 def predict_loan_approval(data):
     # Preprocess the input data (data should be a dictionary)
-    print(data)
     user_data = [
         data['Gender'],
         data['Married'],

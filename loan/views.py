@@ -1,21 +1,13 @@
-import os
-import joblib
-from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.messages import success, error
+
 from .forms import LoadApprovalForm
 from .loan_predictor import predict_loan_approval
 
-
 # Create your views here.
-
-# load the trained model
-model = joblib.load(os.path.join(settings.PICKLES_DIR_PATH, 'loan_prediction_model.pkl'))
-scaler = joblib.load(os.path.join(settings.PICKLES_DIR_PATH, 'loan_scaler.pkl'))
 
 
 def loan_prediction(request):
-    MESSAGE = ''
     if request.method == 'POST':
         form = LoadApprovalForm(request.POST)
         if form.is_valid():
@@ -33,4 +25,4 @@ def loan_prediction(request):
     else:
         form = LoadApprovalForm()
 
-    return render(request, 'loan-form.html', {'form': form, 'MESSAGE': MESSAGE})
+    return render(request, 'loan-form.html', {'form': form})

@@ -134,4 +134,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # get the path to the loan_prediction_model.pkl file
 PICKLES_DIR_PATH = os.path.join(BASE_DIR, 'pickles_dir')
+MODEL_PICKLE_PATH = os.path.join(BASE_DIR, 'pickles_dir/model.pkl')
+SCALER_PICKLE_PATH = os.path.join(BASE_DIR, 'pickles_dir/scaler.pkl')
 DATASET_DIR_PATH = os.path.join(BASE_DIR, 'dataset')
