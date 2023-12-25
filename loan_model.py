@@ -23,7 +23,10 @@ class DataFileAndLoader(object):
     def dataset_file_path(self):
         try:
             if self.data_file_path is None:
-                self.data_file_path = os.path.join(settings.DATASET_DIR_PATH, 'train.csv')
+                DATASET_DIR_PATH = 'path/to/the/dataset/folder/'  # added this new line
+                
+                # changed from settings.DATASET_DIR_PATH to DATASET_DIR_PATH 
+                self.data_file_path = os.path.join(DATASET_DIR_PATH, 'train.csv')
                 print(f"Data file path: {self.data_file_path}")
             return self.data_file_path
         except FileNotFoundError as e:
@@ -243,9 +246,10 @@ class ModelStore(object):
         Prompt the user for model and scaler filenames and store the models to files.
         """
         model_filename, scaler_filename = self.name_file()
+        PICKLES_DIR_PATH = 'path/to/the/pickles/folder/'  # added this new line
 
-        scaler_file_dir = os.path.join(settings.PICKLES_DIR_PATH, scaler_filename)
-        model_file_dir = os.path.join(settings.PICKLES_DIR_PATH, model_filename)
+        scaler_file_dir = os.path.join(PICKLES_DIR_PATH, scaler_filename)
+        model_file_dir = os.path.join(PICKLES_DIR_PATH, model_filename)
 
         joblib.dump(self.scaler, scaler_file_dir)
         print(f"Scaler was successfully saved to {scaler_file_dir}")
