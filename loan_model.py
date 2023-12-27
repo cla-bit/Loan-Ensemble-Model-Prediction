@@ -1,19 +1,20 @@
+
 import os
 from typing import Tuple
 
 from imblearn.over_sampling import SMOTE
 import joblib
+import matplotlib.pyplot as plt
 import pandas as pd
 
+import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, f1_score, precision_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.naive_bayes import GaussianNB
-
-from django.conf import settings
 
 
 class DataFileAndLoader(object):
@@ -23,9 +24,7 @@ class DataFileAndLoader(object):
     def dataset_file_path(self):
         try:
             if self.data_file_path is None:
-                DATASET_DIR_PATH = 'path/to/the/dataset/folder/'  # added this new line
-                
-                # changed from settings.DATASET_DIR_PATH to DATASET_DIR_PATH 
+                DATASET_DIR_PATH = "/dataset"
                 self.data_file_path = os.path.join(DATASET_DIR_PATH, 'train.csv')
                 print(f"Data file path: {self.data_file_path}")
             return self.data_file_path
@@ -41,6 +40,7 @@ class DataFileAndLoader(object):
 class DataProcessing(object):
     def __init__(self, load_dataset_file):
         self.load_dataset = load_dataset_file
+        self.gender_loan_status = None
 
         # Remove the 'Loan_ID' column
         self.load_dataset.drop('Loan_ID', axis=1, inplace=True)
@@ -57,6 +57,10 @@ class DataProcessing(object):
         self.load_dataset['LoanAmount'] = self.load_dataset['LoanAmount'].fillna(self.load_dataset['LoanAmount'].mean())
         self.load_dataset['Loan_Amount_Term'] = self.load_dataset['Loan_Amount_Term'].fillna(self.load_dataset['Loan_Amount_Term'].mean())
         self.load_dataset['Credit_History'] = self.load_dataset['Credit_History'].fillna(self.load_dataset['Credit_History'].mean())
+        
+        # store gender and loan status information
+        self.gender_loan_status = self.load_dataset[['Gender', 'Loan_Status']]
+        
         return self.load_dataset
 
     def data_encoding(self):
@@ -159,6 +163,7 @@ class ModelTrainer(object):
             y_pred = classifier.predict(x_test)
             print(f"{name} accuracy: {accuracy_score(y_test, y_pred)}")
             print(f"{name} precision: {precision_score(y_test, y_pred)}")
+            print(f"{name} recall: {recall_score(y_test, y_pred)}")
             print(f"{name} f1 score: {f1_score(y_test, y_pred)}")
 
     def get_classifier(self, rand_best_classifiers, x_test, y_test, x_train, y_train):
@@ -187,6 +192,7 @@ class ModelTrainer(object):
                 improved_classifiers[name] = classifier
         # Print the accuracies and improved classifiers
         print("Classifier Accuracies:", accuracy_scores)
+        
         for name, accuracy in accuracy_scores.items():
             print(f"{name} accuracy: {accuracy}")
         return improved_classifiers, x_test, y_test,  x_train, y_train
@@ -223,10 +229,15 @@ class EnsembleModel(object):
             (name, classifier) for name, classifier in self.improved_classifiers.items()], voting='hard')
         meta_ensemble.fit(self.x_train, self.y_train)
         meta_predictions = meta_ensemble.predict(self.x_test)
+        
+        result_df = pd.DataFrame({'Actual': self.y_test, 'Predicted': meta_predictions})
+
         ensemble_accuracy = accuracy_score(self.y_test, meta_predictions)
         f1_ensemble_accuracy = f1_score(self.y_test, meta_predictions)
         precision_score_accuracy = precision_score(self.y_test, meta_predictions)
-        return ensemble_accuracy, f1_ensemble_accuracy, precision_score_accuracy, meta_ensemble
+        recall_score_accuracy = recall_score(self.y_test, meta_predictions)
+
+        return ensemble_accuracy, f1_ensemble_accuracy, precision_score_accuracy, recall_score_accuracy, meta_ensemble, result_df
 
 
 class ModelStore(object):
@@ -246,10 +257,9 @@ class ModelStore(object):
         Prompt the user for model and scaler filenames and store the models to files.
         """
         model_filename, scaler_filename = self.name_file()
-        PICKLES_DIR_PATH = 'path/to/the/pickles/folder/'  # added this new line
 
-        scaler_file_dir = os.path.join(PICKLES_DIR_PATH, scaler_filename)
-        model_file_dir = os.path.join(PICKLES_DIR_PATH, model_filename)
+        scaler_file_dir = os.path.join(settings.PICKLES_DIR_PATH, scaler_filename)
+        model_file_dir = os.path.join(settings.PICKLES_DIR_PATH, model_filename)
 
         joblib.dump(self.scaler, scaler_file_dir)
         print(f"Scaler was successfully saved to {scaler_file_dir}")
@@ -287,10 +297,63 @@ model_classifiers, x_test, y_test, x_train, y_train = model_trainer.classifiers_
 improved_classifier, x_test, y_test, x_train, y_train = model_trainer.get_classifier(model_classifiers, x_test, y_test, x_train, y_train)
 
 ensemble_model = EnsembleModel(improved_classifier, x_test, y_test, x_train, y_train)
-ensemble_model_accuracy, f1_ensemble_model_accuracy, precision_score_model_accuracy, meta_model_ensemble = ensemble_model.get_ensemble_model()
+ensemble_model_accuracy, f1_ensemble_model_accuracy, precision_score_model_accuracy, recall_score_model_accuracy, meta_model_ensemble, result_dataframe = ensemble_model.get_ensemble_model()
+
+result_dataframe_merge = pd.merge(result_dataframe, data_processor.gender_loan_status, left_index=True, right_index=True)
+
+# Create a bar chart to visualize the rate of loan status repayment for females and males
+plt.figure(figsize=(10, 6))
+sns.countplot(x='Gender', hue='Predicted', data=result_dataframe_merge)
+plt.title('Loan Status Repayment by Gender')
+plt.xlabel('Gender')
+plt.ylabel('Count')
+plt.show()
+
 print(f"Ensemble accuracy: {ensemble_model_accuracy}")
 print(f"Ensemble f1 score: {f1_ensemble_model_accuracy}")
 print(f"Ensemble precision score: {precision_score_model_accuracy}")
+print(f"Ensemble recall score: {recall_score_model_accuracy}")
 
-model_store = ModelStore(meta_model_ensemble, scaler)
-model_store.store_model()
+# save the model
+# model_store = ModelStore(meta_model_ensemble, scaler)
+# model_store.store_model()
+
+# Testing the model power to predict
+
+new_data = pd.DataFrame({
+    'Gender': ['Male'],
+    'Married': ['Yes'],
+    'Dependents': [1],
+    'Education': ['Graduate'],
+    'Self_Employed': ['Yes'],
+    'ApplicantIncome': [1000],
+    'CoApplicantIncome': [100],
+    'LoanAmount': [3000],
+    'Loan_Amount_Term': [360],
+    'Credit_History': [1],
+    'Property_Area': ['Urban']
+})
+
+# label encoding
+new_data['Gender'] = new_data['Gender'].map({'Male': 0, 'Female': 1}).astype(int)
+new_data['Married'] = new_data['Married'].map({'No': 0, 'Yes': 1}).astype(int)
+new_data['Dependents'] = new_data['Dependents'].astype(int)
+new_data['Education'] = new_data['Education'].map({'Not Graduate': 0, 'Graduate': 1}).astype(int)
+new_data['Self_Employed'] = new_data['Self_Employed'].map({'No': 0, 'Yes': 1}).astype(int)
+new_data['ApplicantIncome'] = new_data['ApplicantIncome'].astype(int)
+new_data['CoApplicantIncome'] = new_data['CoApplicantIncome'].astype(int)
+new_data['LoanAmount'] = new_data['LoanAmount'].astype(int)
+new_data['Loan_Amount_Term'] = new_data['Loan_Amount_Term'].astype(int)
+new_data['Credit_History'] = new_data['Credit_History'].astype(int)
+new_data['Property_Area'] = new_data['Property_Area'].map({'Urban': 0, 'Rural': 1, 'SemiUrban': 2}).astype(int)
+
+# Use the scaler to scale the new data
+new_data_scaled = scaler.transform(new_data)
+
+
+# Use the ensemble model to make predictions
+new_predictions = meta_model_ensemble.predict(new_data_scaled)
+
+# Print the predictions
+print("Predictions for new data:")
+print(new_predictions)
