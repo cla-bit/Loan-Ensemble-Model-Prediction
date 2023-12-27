@@ -318,8 +318,11 @@ print(f"Ensemble recall score: {recall_score_model_accuracy}")
 # model_store = ModelStore(meta_model_ensemble, scaler)
 # model_store.store_model()
 
-# Testing the model power to predict
+"""
+Testing the model's power to see if it can predict with new values.
+You can change the values to determine also
 
+"""
 new_data = pd.DataFrame({
     'Gender': ['Male'],
     'Married': ['Yes'],
