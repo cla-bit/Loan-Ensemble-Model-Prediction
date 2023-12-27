@@ -258,8 +258,10 @@ class ModelStore(object):
         """
         model_filename, scaler_filename = self.name_file()
 
-        scaler_file_dir = os.path.join(settings.PICKLES_DIR_PATH, scaler_filename)
-        model_file_dir = os.path.join(settings.PICKLES_DIR_PATH, model_filename)
+        PICKLES_DIR_PATH = "/pickles_dir"
+
+        scaler_file_dir = os.path.join(PICKLES_DIR_PATH, scaler_filename)
+        model_file_dir = os.path.join(PICKLES_DIR_PATH, model_filename)
 
         joblib.dump(self.scaler, scaler_file_dir)
         print(f"Scaler was successfully saved to {scaler_file_dir}")
